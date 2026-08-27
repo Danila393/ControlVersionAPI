@@ -6,5 +6,5 @@ celery_app = Celery(
     "production_control",
     broker=settings.celery_broker_url,
     backend=settings.celery_result_backend,
-    include=["src.tasks.aggregation"],
+    include=["src.tasks.aggregation", "src.tasks.webhooks"],
 )
