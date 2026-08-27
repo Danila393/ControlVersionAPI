@@ -1,0 +1,9 @@
+[project]
+name = "production-control"
+version = "0.1.0"
+description = "API системы контроля заданий на выпуск продукции"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
