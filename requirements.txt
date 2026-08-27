@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+
+pydantic-settings
+
+sqlalchemy[asyncio]>=2.0
+psycopg[binary]
+
+alembic
+
+celery
+redis
+
+minio
+
+slowapi
