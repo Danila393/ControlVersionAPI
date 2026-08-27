@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import select, any_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
 
@@ -52,3 +52,22 @@ class WebhookRepository:
             .where(WebhookDelivery.subscription_id == subscription_id)
         )
         return list(result.scalars().all())
+
+    async def list_active_by_event(self, event_type: str) -> list[WebhookSubscription]:
+        result = await self.session.execute(
+            select(WebhookSubscription)
+            .where(
+                WebhookSubscription.is_active == True,
+                event_type == any_(WebhookSubscription.events),
+            )
+        )
+        return list(result.scalars().all())
+
+    async def create_delivery(self, delivery: WebhookDelivery) -> WebhookDelivery:
+        self.session.add(delivery)
+        try:
+            await self.session.flush()
+        except IntegrityError:
+            await self.session.rollback()
+            raise
+        return delivery
