@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     database_url: str
     celery_broker_url: str
     celery_result_backend: str
+    redis_url: str
     minio_endpoint: str = "127.0.0.1:9000"
     minio_access_key: str = "minioadmin"
     minio_secret_key: str = "minioadmin"

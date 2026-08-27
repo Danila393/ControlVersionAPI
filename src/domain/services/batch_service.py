@@ -2,13 +2,13 @@ from datetime import date, datetime
 
 from sqlalchemy.exc import IntegrityError
 
-from src.api.v1.schemas.batch import BatchCreate, BatchUpdate
+from src.api.v1.schemas.batch import BatchCreate, BatchUpdate, BatchRead
 from src.data.models.batch import Batch
 from src.data.repositories.batch_repository import BatchRepository
 from src.data.repositories.work_center_repository import WorkCenterRepository
 from src.domain.exceptions import BatchAlreadyExistsError, BatchNotFoundError
 from src.domain.services.webhook_service import WebhookService
-
+from src.core.cache import cached, invalidate
 
 class BatchService:
     def __init__(
@@ -65,13 +65,15 @@ class BatchService:
                 "work_center": work_center.name,
             },
         )
+        await invalidate("batches_list")
         return batch
 
-    async def get_batch(self, batch_id: int) -> Batch:
+    @cached(ttl=600, key_prefix="batch_detail")
+    async def get_batch(self, batch_id: int) -> dict:
         batch = await self.batch_repo.get_by_id(batch_id)
         if batch is None:
             raise BatchNotFoundError(f"Batch {batch_id} not found")
-        return batch
+        return BatchRead.model_validate(batch).model_dump(mode="json")
 
     async def update_batch(self, batch_id: int, data: BatchUpdate) -> Batch:
         batch = await self.batch_repo.get_by_id(batch_id)
@@ -107,9 +109,10 @@ class BatchService:
                     "closed_at": str(batch.closed_at),
                 },
             )
-
+        await invalidate("batches_list", f"batch_detail:{batch.id}")
         return batch
 
+    @cached(ttl=60, key_prefix="batches_list")
     async def list_batches(
         self,
         is_closed: bool | None = None,
@@ -119,8 +122,8 @@ class BatchService:
         shift: str | None = None,
         offset: int = 0,
         limit: int = 20,
-    ) -> list[Batch]:
-        return await self.batch_repo.list_batches(
+    ) -> list[dict]:
+        batches = await self.batch_repo.list_batches(
             is_closed=is_closed,
             batch_number=batch_number,
             batch_date=batch_date,
@@ -129,3 +132,4 @@ class BatchService:
             offset=offset,
             limit=limit,
         )
+        return [BatchRead.model_validate(b).model_dump(mode="json") for b in batches]
