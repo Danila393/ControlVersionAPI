@@ -5,8 +5,10 @@ from src.api.v1.schemas.product import ProductCreate, ProductRead
 from src.core.database import get_db
 from src.data.repositories.batch_repository import BatchRepository
 from src.data.repositories.product_repository import ProductRepository
+from src.data.repositories.webhook_repository import WebhookRepository
 from src.domain.exceptions import BatchNotFoundError, ProductAlreadyExistsError
 from src.domain.services.product_service import ProductService
+from src.domain.services.webhook_service import WebhookService
 
 
 router = APIRouter(prefix="/api/v1/products", tags=["products"])
@@ -20,6 +22,7 @@ async def create_product(
     service = ProductService(
         product_repo=ProductRepository(session),
         batch_repo=BatchRepository(session),
+        webhook_service=WebhookService(webhook_repo=WebhookRepository(session)),
     )
     try:
         product = await service.create_product(payload)

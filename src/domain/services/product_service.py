@@ -12,6 +12,7 @@ from src.domain.exceptions import (
     ProductAlreadyExistsError,
     ProductNotFoundError,
 )
+from src.domain.services.webhook_service import WebhookService
 
 
 class ProductService:
@@ -19,9 +20,11 @@ class ProductService:
         self,
         product_repo: ProductRepository,
         batch_repo: BatchRepository,
+        webhook_service: WebhookService,
     ):
         self.product_repo = product_repo
         self.batch_repo = batch_repo
+        self.webhook_service = webhook_service
 
     async def create_product(self, data: ProductCreate) -> Product:
         batch = await self.batch_repo.get_by_id(data.batch_id)
@@ -53,4 +56,14 @@ class ProductService:
             product.is_aggregated = True
             product.aggregated_at=datetime.now(UTC)
 
-        return await self.product_repo.update(product)
+        product = await self.product_repo.update(product)
+
+        await self.webhook_service.dispatch_event(
+            "product_aggregated",
+            {
+                "unique_code": product.unique_code,
+                "batch_id": batch_id,
+                "aggregated_at": str(product.aggregated_at),
+            },
+        )
+        return product

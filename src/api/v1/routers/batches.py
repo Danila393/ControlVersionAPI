@@ -9,9 +9,11 @@ from src.tasks.aggregation import aggregate_products_batch
 from src.core.database import get_db
 from src.data.repositories.batch_repository import BatchRepository
 from src.data.repositories.product_repository import ProductRepository
+from src.data.repositories.webhook_repository import WebhookRepository
 from src.data.repositories.work_center_repository import WorkCenterRepository
 from src.domain.services.batch_service import BatchService
 from src.domain.services.product_service import ProductService
+from src.domain.services.webhook_service import WebhookService
 from src.domain.exceptions import (
     BatchAlreadyExistsError,
     BatchNotFoundError,
@@ -32,6 +34,7 @@ async def create_batches(
     service = BatchService(
         batch_repo=BatchRepository(session),
         work_center_repo=WorkCenterRepository(session),
+        webhook_service=WebhookService(webhook_repo=WebhookRepository(session)),
     )
 
     try:
@@ -57,6 +60,7 @@ async def list_batches(
     service = BatchService(
         batch_repo=BatchRepository(session),
         work_center_repo=WorkCenterRepository(session),
+        webhook_service=WebhookService(webhook_repo=WebhookRepository(session)),
     )
     return await service.list_batches(
         is_closed=is_closed,
@@ -77,6 +81,7 @@ async def get_batch(
     service = BatchService(
         batch_repo=BatchRepository(session),
         work_center_repo=WorkCenterRepository(session),
+        webhook_service=WebhookService(webhook_repo=WebhookRepository(session)),
     )
     try:
         return await service.get_batch(batch_id)
@@ -93,6 +98,7 @@ async def update_batch(
     service = BatchService(
         batch_repo=BatchRepository(session),
         work_center_repo=WorkCenterRepository(session),
+        webhook_service=WebhookService(webhook_repo=WebhookRepository(session)),
     )
     try:
         batch = await service.update_batch(batch_id, payload)
@@ -112,6 +118,7 @@ async def aggregate_product(
     service = ProductService(
         product_repo=ProductRepository(session),
         batch_repo=BatchRepository(session),
+        webhook_service=WebhookService(webhook_repo=WebhookRepository(session)),
     )
     try:
         product = await service.aggregate_product(batch_id, payload.unique_code)

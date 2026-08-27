@@ -7,6 +7,7 @@ from src.data.models.batch import Batch
 from src.data.repositories.batch_repository import BatchRepository
 from src.data.repositories.work_center_repository import WorkCenterRepository
 from src.domain.exceptions import BatchAlreadyExistsError, BatchNotFoundError
+from src.domain.services.webhook_service import WebhookService
 
 
 class BatchService:
@@ -14,9 +15,11 @@ class BatchService:
         self,
         batch_repo: BatchRepository,
         work_center_repo: WorkCenterRepository,
+        webhook_service: WebhookService,
     ):
         self.batch_repo = batch_repo
         self.work_center_repo = work_center_repo
+        self.webhook_service = webhook_service
 
     async def create_batch(self, data: BatchCreate) -> Batch:
         work_center = await self.work_center_repo.get_by_identifier(
@@ -44,13 +47,25 @@ class BatchService:
         )
 
         try:
-            return await self.batch_repo.create(batch)
+            batch = await self.batch_repo.create(batch)
         except IntegrityError as e:
             if e.orig.diag.constraint_name == "uq_batch_number_date":
                 raise BatchAlreadyExistsError(
                     f"Партия №{data.batch_number} за {data.batch_date} уже существует"
                 )
             raise
+
+        await self.webhook_service.dispatch_event(
+            "batch_created",
+            {
+                "id": batch.id,
+                "batch_number": batch.batch_number,
+                "batch_date": str(batch.batch_date),
+                "nomenclature": batch.nomenclature,
+                "work_center": work_center.name,
+            },
+        )
+        return batch
 
     async def get_batch(self, batch_id: int) -> Batch:
         batch = await self.batch_repo.get_by_id(batch_id)
@@ -65,11 +80,14 @@ class BatchService:
 
         updates = data.model_dump(exclude_unset=True)
 
+        just_closed = False
+
         if "is_closed" in updates:
             new_value = updates["is_closed"]
             batch.is_closed = new_value
             if new_value is True:
                 batch.closed_at = datetime.now()
+                just_closed = True
             else:
                 batch.closed_at = None
 
@@ -78,7 +96,19 @@ class BatchService:
                 continue
             setattr(batch, field, value)
 
-        return await self.batch_repo.update(batch)
+        batch = await self.batch_repo.update(batch)
+
+        if just_closed:
+            await self.webhook_service.dispatch_event(
+                "batch_closed",
+                {
+                    "id": batch.id,
+                    "batch_number": batch.batch_number,
+                    "closed_at": str(batch.closed_at),
+                },
+            )
+
+        return batch
 
     async def list_batches(
         self,

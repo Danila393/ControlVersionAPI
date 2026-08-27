@@ -5,7 +5,9 @@ from src.celery_app import celery_app
 from src.core.database import AsyncSessionLocal
 from src.data.repositories.batch_repository import BatchRepository
 from src.data.repositories.product_repository import ProductRepository
+from src.data.repositories.webhook_repository import WebhookRepository
 from src.domain.services.product_service import ProductService
+from src.domain.services.webhook_service import WebhookService
 from src.domain.exceptions import (
     ProductNotFoundError,
     ProductAlreadyAggregatedError,
@@ -25,6 +27,7 @@ async def _aggregate_products_batch_async(
         service = ProductService(
             product_repo=ProductRepository(session),
             batch_repo=BatchRepository(session),
+            webhook_service=WebhookService(webhook_repo=WebhookRepository(session)),
         )
 
         for code in unique_codes:
@@ -35,8 +38,6 @@ async def _aggregate_products_batch_async(
                 errors.append({"code": code, "reason": "not found"})
             except ProductAlreadyAggregatedError:
                 errors.append({"code": code, "reason": "already aggregated"})
-            # Обрати внимание: НИЧЕГО не бросаем наружу (никаких raise/HTTPException) —
-            # плохой код просто уходит в errors, а цикл идёт дальше к следующему.
 
         await session.commit()
 

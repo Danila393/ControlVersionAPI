@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, UTC
 
 from sqlalchemy.exc import IntegrityError
 
@@ -6,7 +6,7 @@ from src.api.v1.schemas.webhook import WebhookCreate, WebhookUpdate
 from src.data.models.webhook_delivery import WebhookDelivery
 from src.data.models.webhook_subscription import WebhookSubscription
 from src.data.repositories.webhook_repository import WebhookRepository
-
+from src.tasks.webhooks import send_webhook_delivery
 from src.domain.exceptions import WebhookNotFoundError
 
 
@@ -61,3 +61,23 @@ class WebhookService:
         if webhook is None:
             raise WebhookNotFoundError(f"Webhook {webhook_id} not found")
         return await self.webhook_repo.list_deliveries_by_subscription(webhook_id)
+
+    async def dispatch_event(self, event_type: str, data: dict) -> None:
+        subscriptions = await self.webhook_repo.list_active_by_event(event_type)
+
+        for subscription in subscriptions:
+            payload = {
+                "event": event_type,
+                "data": data,
+                "timestamp": datetime.now(UTC).isoformat(),
+            }
+
+            delivery = WebhookDelivery(
+                subscription_id=subscription.id,
+                event_type=event_type,
+                payload=payload,
+                status="pending",
+            )
+            await self.webhook_repo.create_delivery(delivery)
+
+            send_webhook_delivery.delay(delivery.id)

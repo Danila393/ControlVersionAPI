@@ -1,6 +1,7 @@
 from sqlalchemy import select, any_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import selectinload
 
 from src.data.models.webhook_subscription import WebhookSubscription
 from src.data.models.webhook_delivery import WebhookDelivery
@@ -71,3 +72,12 @@ class WebhookRepository:
             await self.session.rollback()
             raise
         return delivery
+
+    async def get_delivery_by_id(self, delivery_id: int) -> WebhookDelivery | None:
+        result = await self.session.execute(
+            select(WebhookDelivery)
+            .where(WebhookDelivery.id == delivery_id)
+            .options(selectinload(WebhookDelivery.subscription))
+        )
+        return result.scalar_one_or_none()
+
