@@ -13,6 +13,7 @@ from src.domain.exceptions import (
     ProductNotFoundError,
 )
 from src.domain.services.webhook_service import WebhookService
+from src.core.cache import invalidate
 
 
 class ProductService:
@@ -34,13 +35,16 @@ class ProductService:
         product = Product(batch_id=data.batch_id, unique_code=data.unique_code)
 
         try:
-            return await self.product_repo.create(product)
+            product = await self.product_repo.create(product)
         except IntegrityError as e:
             if e.orig.diag.constraint_name == "ix_products_unique_code":
                 raise ProductAlreadyExistsError(
                     f"Продукция с кодом {data.unique_code} уже существует"
                 )
             raise
+
+        await invalidate(f"batch_detail:{data.batch_id}")
+        return product
 
     async def aggregate_product(self, batch_id: int, unique_code: str) -> Product:
         product = await self.product_repo.get_by_unique_code(unique_code)
@@ -66,4 +70,5 @@ class ProductService:
                 "aggregated_at": str(product.aggregated_at),
             },
         )
+        await invalidate(f"batch_detail:{batch_id}")
         return product
