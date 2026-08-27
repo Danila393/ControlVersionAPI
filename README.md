@@ -70,6 +70,16 @@ celery -A src.celery_app worker --loglevel=info --pool=solo
 `--pool=solo` обязателен на Windows — дефолтный prefork-пул использует
 `os.fork`, которого на Windows нет.
 
+### 7. Запуск Celery Beat — планировщик (в отдельном терминале, опционально)
+
+```powershell
+celery -A src.celery_app beat --loglevel=info
+```
+
+Beat сам ничего не выполняет — он по расписанию (см. `celery_app.py`,
+`beat_schedule`) кладёт задачи в очередь, а выполняет их обычный worker
+(шаг 6), так что worker должен быть запущен тоже.
+
 ## Доступные адреса
 
 - Проверка приложения: <http://127.0.0.1:8000/health>

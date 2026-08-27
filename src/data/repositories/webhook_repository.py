@@ -81,3 +81,9 @@ class WebhookRepository:
         )
         return result.scalar_one_or_none()
 
+    async def list_failed_deliveries(self) -> list[WebhookDelivery]:
+        result = await self.session.execute(
+            select(WebhookDelivery).where(WebhookDelivery.status == "failed")
+        )
+        return list(result.scalars().all())
+

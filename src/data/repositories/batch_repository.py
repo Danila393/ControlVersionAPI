@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -64,4 +64,13 @@ class BatchRepository:
         query = query.offset(offset).limit(limit)
 
         result = await self.session.execute(query)
+        return list(result.scalars().all())
+
+    async def list_expired_open_batches(self, now: datetime) -> list[Batch]:
+        """Партии, которые ещё не закрыты, но их смена уже закончилась."""
+        result = await self.session.execute(
+            select(Batch)
+            .where(Batch.is_closed == False, Batch.shift_end < now)
+            .options(selectinload(Batch.products))
+        )
         return list(result.scalars().all())
