@@ -80,6 +80,26 @@ Beat сам ничего не выполняет — он по расписан�
 `beat_schedule`) кладёт задачи в очередь, а выполняет их обычный worker
 (шаг 6), так что worker должен быть запущен тоже.
 
+## Тесты
+
+Тесты используют отдельную базу `production_control_test` в том же
+Postgres-контейнере (создать один раз):
+
+```powershell
+docker exec production_control_db psql -U postgres -c "CREATE DATABASE production_control_test;"
+```
+
+Дальше просто:
+
+```powershell
+pytest
+```
+
+Не нужен ни запущенный `uvicorn`, ни Celery worker — тесты стучатся в
+FastAPI-приложение напрямую, в памяти (`httpx.ASGITransport`). Но Postgres,
+Redis и RabbitMQ должны быть подняты (`docker compose up -d`) — код
+реально ходит в базу, кэш и очередь, просто в тестовую БД, а не в рабочую.
+
 ## Доступные адреса
 
 - Проверка приложения: <http://127.0.0.1:8000/health>

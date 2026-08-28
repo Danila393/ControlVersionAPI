@@ -19,3 +19,6 @@ httpx
 
 openpyxl
 python-multipart
+
+pytest
+pytest-asyncio
