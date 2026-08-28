@@ -7,7 +7,13 @@ celery_app = Celery(
     "production_control",
     broker=settings.celery_broker_url,
     backend=settings.celery_result_backend,
-    include=["src.tasks.aggregation", "src.tasks.webhooks", "src.tasks.scheduled", "src.tasks.reports"],
+    include=[
+        "src.tasks.aggregation",
+        "src.tasks.webhooks",
+        "src.tasks.scheduled",
+        "src.tasks.reports",
+        "src.tasks.imports",
+    ],
 )
 
 # beat_schedule — расписание для Celery Beat. Каждая запись говорит: "в такое-то

@@ -18,3 +18,4 @@ slowapi
 httpx
 
 openpyxl
+python-multipart

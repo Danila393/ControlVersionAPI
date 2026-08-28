@@ -1,12 +1,17 @@
+import os
+import tempfile
+import uuid
 from datetime import date
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.v1.schemas.batch import BatchCreate, BatchRead, BatchUpdate
 from src.api.v1.schemas.product import ProductAggregateRequest, ProductRead, AggregateAsyncRequest
 from src.api.v1.schemas.task import ReportRequest
+from src.storage.minio_service import MinIOService
 from src.tasks.aggregation import aggregate_products_batch
+from src.tasks.imports import import_batches_from_file
 from src.tasks.reports import generate_batch_report
 from src.core.database import get_db
 from src.data.repositories.batch_repository import BatchRepository
@@ -143,6 +148,30 @@ async def aggregate_async(
         "task_id": result.id,
         "status": "PENDING",
         "message": "Aggregation task started",
+    }
+
+
+@router.post("/import", status_code=status.HTTP_202_ACCEPTED)
+async def import_batches(file: UploadFile = File(...)):
+    local_path = os.path.join(tempfile.gettempdir(), f"upload_{uuid.uuid4().hex[:8]}.xlsx")
+    with open(local_path, "wb") as f:
+        f.write(await file.read())
+
+    object_name = f"{uuid.uuid4().hex[:8]}_{file.filename}"
+    try:
+        MinIOService().client.fput_object(
+            bucket_name="imports",
+            object_name=object_name,
+            file_path=local_path,
+        )
+    finally:
+        os.remove(local_path)
+
+    result = import_batches_from_file.delay(object_name, None)
+    return {
+        "task_id": result.id,
+        "status": "PENDING",
+        "message": "File uploaded, import started",
     }
 
 
