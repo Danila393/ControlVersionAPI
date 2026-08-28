@@ -1,11 +1,5 @@
 def _batch_payload(batch_number: int = 1, work_center_identifier: str = "RC-TEST") -> dict:
-    """
-    Маленький помощник, а не фикстура — просто чтобы не копировать один и
-    тот же длинный JSON в каждый тест. Параметр batch_number вынесен
-    отдельно, потому что batch_number+batch_date вместе должны быть
-    уникальны (see uq_batch_number_date) — разным тестам нужны разные
-    номера, чтобы не мешать друг другу.
-    """
+    # batch_number параметризован — batch_number+batch_date уникальны (uq_batch_number_date)
     return {
         "СтатусЗакрытия": False,
         "ПредставлениеЗаданияНаСмену": "Тестовое задание",
