@@ -6,6 +6,7 @@ from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
 
+from src.api.v1.routers.analytics import router as analytics_router
 from src.api.v1.routers.batches import router as batches_router
 from src.api.v1.routers.products import router as products_router
 from src.api.v1.routers.webhooks import router as webhooks_router
@@ -33,6 +34,7 @@ app.include_router(batches_router)
 app.include_router(products_router)
 app.include_router(webhooks_router)
 app.include_router(tasks_router)
+app.include_router(analytics_router)
 
 @app.get("/health")
 async def health_check() -> dict[str, str]:
