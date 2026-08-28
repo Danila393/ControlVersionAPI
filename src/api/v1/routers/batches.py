@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.v1.schemas.batch import BatchCreate, BatchRead, BatchUpdate
 from src.api.v1.schemas.product import ProductAggregateRequest, ProductRead, AggregateAsyncRequest
+from src.api.v1.schemas.analytics import BatchStatisticsResponse
 from src.api.v1.schemas.task import ExportRequest, ReportRequest
 from src.storage.minio_service import MinIOService
 from src.tasks.aggregation import aggregate_products_batch
@@ -19,6 +20,7 @@ from src.data.repositories.batch_repository import BatchRepository
 from src.data.repositories.product_repository import ProductRepository
 from src.data.repositories.webhook_repository import WebhookRepository
 from src.data.repositories.work_center_repository import WorkCenterRepository
+from src.domain.services.analytics_service import AnalyticsService
 from src.domain.services.batch_service import BatchService
 from src.domain.services.product_service import ProductService
 from src.domain.services.webhook_service import WebhookService
@@ -93,6 +95,18 @@ async def get_batch(
     )
     try:
         return await service.get_batch(batch_id)
+    except BatchNotFoundError:
+        raise HTTPException(status_code=404, detail="Партия не найдена")
+
+
+@router.get("/{batch_id}/statistics", response_model=BatchStatisticsResponse)
+async def get_batch_statistics(
+    batch_id: int,
+    session: AsyncSession = Depends(get_db),
+):
+    service = AnalyticsService(batch_repo=BatchRepository(session))
+    try:
+        return await service.get_batch_statistics(batch_id)
     except BatchNotFoundError:
         raise HTTPException(status_code=404, detail="Партия не найдена")
 
