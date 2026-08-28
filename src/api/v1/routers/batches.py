@@ -8,9 +8,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.v1.schemas.batch import BatchCreate, BatchRead, BatchUpdate
 from src.api.v1.schemas.product import ProductAggregateRequest, ProductRead, AggregateAsyncRequest
-from src.api.v1.schemas.task import ReportRequest
+from src.api.v1.schemas.task import ExportRequest, ReportRequest
 from src.storage.minio_service import MinIOService
 from src.tasks.aggregation import aggregate_products_batch
+from src.tasks.exports import export_batches_to_file
 from src.tasks.imports import import_batches_from_file
 from src.tasks.reports import generate_batch_report
 from src.core.database import get_db
@@ -173,6 +174,14 @@ async def import_batches(file: UploadFile = File(...)):
         "status": "PENDING",
         "message": "File uploaded, import started",
     }
+
+
+@router.post("/export", status_code=status.HTTP_202_ACCEPTED)
+async def export_batches(payload: ExportRequest):
+    result = export_batches_to_file.delay(
+        payload.filters.model_dump(exclude_none=True), payload.format
+    )
+    return {"task_id": result.id}
 
 
 @router.post("/{batch_id}/reports", status_code=status.HTTP_202_ACCEPTED)

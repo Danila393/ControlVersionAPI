@@ -48,7 +48,9 @@ class BatchRepository:
         offset: int = 0,
         limit: int = 20,
     ) -> list[Batch]:
-        query = select(Batch).options(selectinload(Batch.products))
+        query = select(Batch).options(
+            selectinload(Batch.products), selectinload(Batch.work_center)
+        )
 
         if is_closed is not None:
             query = query.where(Batch.is_closed == is_closed)

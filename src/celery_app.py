@@ -13,6 +13,7 @@ celery_app = Celery(
         "src.tasks.scheduled",
         "src.tasks.reports",
         "src.tasks.imports",
+        "src.tasks.exports",
     ],
 )
 
