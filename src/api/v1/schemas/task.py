@@ -16,6 +16,8 @@ class ExportFilters(BaseModel):
     is_closed: bool | None = None
     batch_number: int | None = None
     batch_date: str | None = None
+    date_from: str | None = None
+    date_to: str | None = None
     work_center_id: str | None = None
     shift: str | None = None
 

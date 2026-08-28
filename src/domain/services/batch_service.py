@@ -109,6 +109,24 @@ class BatchService:
                     "closed_at": str(batch.closed_at),
                 },
             )
+
+        other_changes = {k: v for k, v in updates.items() if k != "is_closed"}
+        if other_changes:
+            # datetime/date не сериализуются в JSON напрямую (json.dumps их не
+            # понимает) — приводим к строке перед тем, как класть в payload вебхука.
+            serializable_changes = {
+                field: (value.isoformat() if hasattr(value, "isoformat") else value)
+                for field, value in other_changes.items()
+            }
+            await self.webhook_service.dispatch_event(
+                "batch_updated",
+                {
+                    "id": batch.id,
+                    "batch_number": batch.batch_number,
+                    "changes": serializable_changes,
+                },
+            )
+
         await invalidate("batches_list", f"batch_detail:{batch.id}")
         return batch
 

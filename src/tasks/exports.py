@@ -20,6 +20,12 @@ async def _export_batches_to_file_async(filters: dict, format: str = "excel") ->
     batch_date = filters.get("batch_date")
     if batch_date:
         batch_date = date.fromisoformat(batch_date)
+    date_from = filters.get("date_from")
+    if date_from:
+        date_from = date.fromisoformat(date_from)
+    date_to = filters.get("date_to")
+    if date_to:
+        date_to = date.fromisoformat(date_to)
 
     async with AsyncSessionLocal() as session:
         batch_repo = BatchRepository(session)
@@ -27,6 +33,8 @@ async def _export_batches_to_file_async(filters: dict, format: str = "excel") ->
             is_closed=filters.get("is_closed"),
             batch_number=filters.get("batch_number"),
             batch_date=batch_date,
+            batch_date_from=date_from,
+            batch_date_to=date_to,
             work_center_identifier=filters.get("work_center_id"),
             shift=filters.get("shift"),
             offset=0,

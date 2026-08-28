@@ -43,6 +43,8 @@ class BatchRepository:
         is_closed: bool | None = None,
         batch_number: int | None = None,
         batch_date: date | None = None,
+        batch_date_from: date | None = None,
+        batch_date_to: date | None = None,
         work_center_identifier: str | None = None,
         shift: str | None = None,
         offset: int = 0,
@@ -58,6 +60,10 @@ class BatchRepository:
             query = query.where(Batch.batch_number == batch_number)
         if batch_date is not None:
             query = query.where(Batch.batch_date == batch_date)
+        if batch_date_from is not None:
+            query = query.where(Batch.batch_date >= batch_date_from)
+        if batch_date_to is not None:
+            query = query.where(Batch.batch_date <= batch_date_to)
         if shift is not None:
             query = query.where(Batch.shift == shift)
         if work_center_identifier is not None:
