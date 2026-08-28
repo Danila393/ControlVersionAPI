@@ -6,3 +6,8 @@ class TaskStatusResponse(BaseModel):
     status: str
     result: dict | None = None
 
+
+class ReportRequest(BaseModel):
+    format: str = "excel"
+    email: str | None = None
+

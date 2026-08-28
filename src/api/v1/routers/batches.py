@@ -5,7 +5,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.v1.schemas.batch import BatchCreate, BatchRead, BatchUpdate
 from src.api.v1.schemas.product import ProductAggregateRequest, ProductRead, AggregateAsyncRequest
+from src.api.v1.schemas.task import ReportRequest
 from src.tasks.aggregation import aggregate_products_batch
+from src.tasks.reports import generate_batch_report
 from src.core.database import get_db
 from src.data.repositories.batch_repository import BatchRepository
 from src.data.repositories.product_repository import ProductRepository
@@ -141,4 +143,16 @@ async def aggregate_async(
         "task_id": result.id,
         "status": "PENDING",
         "message": "Aggregation task started",
+    }
+
+
+@router.post("/{batch_id}/reports", status_code=status.HTTP_202_ACCEPTED)
+async def create_batch_report(
+    batch_id: int,
+    payload: ReportRequest,
+):
+    result = generate_batch_report.delay(batch_id, payload.format, payload.email)
+    return {
+        "task_id": result.id,
+        "status": "PENDING",
     }

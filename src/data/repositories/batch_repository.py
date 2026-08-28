@@ -34,7 +34,7 @@ class BatchRepository:
         result = await self.session.execute(
             select(Batch)
             .where(Batch.id == batch_id)
-            .options(selectinload(Batch.products))
+            .options(selectinload(Batch.products), selectinload(Batch.work_center))
         )
         return result.scalar_one_or_none()
 
