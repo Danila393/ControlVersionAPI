@@ -8,6 +8,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY src ./src
 COPY alembic ./alembic
 COPY alembic.ini .
+COPY fonts ./fonts
 
 EXPOSE 8000
 
