@@ -13,3 +13,8 @@ asyncio_default_test_loop_scope = "session"
 [tool.ruff]
 line-length = 88
 target-version = "py312"
+
+[tool.ruff.lint]
+ignore = [
+    "B008",  # Depends(get_db)/File(...) — не выполняются при определении роутера, это FastAPI DI-паттерн
+]
