@@ -24,3 +24,7 @@ pytest
 pytest-asyncio
 
 reportlab
+
+# dev-инструменты (линтинг, git-хуки)
+ruff
+pre-commit
