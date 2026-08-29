@@ -32,7 +32,10 @@ data/models/*.py        — описание таблиц: какие колон
 - `routers/products.py` — создание продукции
 - `routers/webhooks.py` — CRUD подписок на вебхуки + история доставок
 - `routers/tasks.py` — универсальный `GET /tasks/{id}`: статус/результат
-  любой Celery-задачи (аггрегация, отчёты — все ходят через одну ручку)
+  любой Celery-задачи (аггрегация, отчёты, импорт, экспорт — все ходят
+  через одну ручку)
+- `routers/analytics.py` — сводная статистика: дашборд, статистика по
+  партии, сравнение партий
 - `schemas/*.py` — Pydantic-модели запросов/ответов. `batch.py` — с
   алиасами на кириллицу (`НомерПартии` и т.п.), т.к. этого требует ТЗ
 
@@ -45,6 +48,8 @@ data/models/*.py        — описание таблиц: какие колон
   событие `product_aggregated`
 - `services/webhook_service.py` — CRUD подписок + `dispatch_event(...)`:
   находит подходящие подписки и ставит для каждой задачу отправки
+- `services/analytics_service.py` — дашборд (сводка по всем партиям),
+  статистика по одной партии, сравнение нескольких партий
 - `exceptions/__init__.py` — доменные исключения (`BatchNotFoundError`,
   `ProductAlreadyAggregatedError` и т.п.) — их ловят роутеры и
   превращают в HTTP-коды
@@ -62,6 +67,10 @@ data/models/*.py        — описание таблиц: какие колон
   `get_delivery_by_id`, `list_active_by_event` (фильтр по PostgreSQL
   ARRAY через `any_()`), `list_failed_deliveries`
 - `repositories/work_center_repository.py` — `get_by_identifier`, `create`
+- `repositories/analytics_repository.py` — агрегирующие запросы для
+  дашборда/статистики; счётчики партий и продукции по сменам считаются
+  двумя отдельными запросами (не одним JOIN), чтобы не словить fan-out
+  при умножении строк из-за one-to-many связи
 
 ## `src/core/` — инфраструктура, общая для всего проекта
 
@@ -80,10 +89,17 @@ data/models/*.py        — описание таблиц: какие колон
   по списку кодов
 - `webhooks.py` — `send_webhook_delivery` — реальная отправка одного
   вебхука (HMAC-подпись, retry с exponential backoff через `autoretry_for`)
-- `reports.py` — `generate_batch_report` — Excel-отчёт по партии
-  (3 листа), заливка в MinIO
+- `reports.py` — `generate_batch_report` — отчёт по партии, Excel
+  (3 листа) или PDF (кириллический TTF-шрифт из `fonts/`), заливка в MinIO
+- `imports.py` — `import_batches_from_file` — импорт партий из Excel/CSV
+  (формат определяется по расширению файла), пропускает дубликаты
+- `exports.py` — `export_batches_to_file` — экспорт партий по фильтрам
+  в Excel/CSV
 - `scheduled.py` — задачи для Celery Beat: `auto_close_expired_batches`
-  (каждый день в 01:00), `retry_failed_webhooks` (каждые 15 минут)
+  (каждый день в 01:00), `retry_failed_webhooks` (каждые 15 минут),
+  `cleanup_old_files` (каждый день в 02:00 — чистит старые файлы во всех
+  бакетах MinIO), `update_cached_statistics` (каждые 5 минут — обновляет
+  закэшированную статистику дашборда)
 
 `src/celery_app.py` — сам объект `Celery` (broker/backend) +
 `beat_schedule` (расписание для Beat).
@@ -99,10 +115,14 @@ data/models/*.py        — описание таблиц: какие колон
 
 ## Инфраструктура (не Python-код)
 
-- `docker-compose.yml` — Postgres, Redis, RabbitMQ, MinIO, Flower
+- `docker-compose.yml` — Postgres, Redis, RabbitMQ, MinIO, Flower всегда;
+  `api`/`celery_worker`/`celery_beat` — под `profiles: ["full"]`, чтобы не
+  конфликтовать по порту 8000 с локальным `uvicorn` (см. README)
 - `alembic/` — миграции БД
-- `Dockerfile` — образ самого API (пока не используется в docker-compose,
-  api и worker запускаются локально через venv)
+- `Dockerfile` — образ самого API, используется профилем `full`
+- `fonts/DejaVuSans.ttf` — шрифт с кириллицей для PDF-отчётов, закоммичен
+  в репозиторий (open-license, не проприетарный); если файла нет,
+  `reports.py` пробует откатиться на системный Arial (только Windows)
 
 ## Известные ограничения (осознанные, не баги)
 
