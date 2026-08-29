@@ -7,14 +7,8 @@ logger = logging.getLogger("production_control")
 
 
 def register_exception_handlers(app: FastAPI) -> None:
-    """
-    Ловит любое исключение, которое долетело до самого верха (то есть ни один
-    роутер/сервис его не обработал) и превращает в чистый JSON вместо
-    голого traceback'а с внутренностями кода, которые клиенту видеть не нужно.
-
-    Сам traceback никуда не девается — он всё ещё пишется в лог сервера,
-    просто наружу, в HTTP-ответ, он больше не утекает.
-    """
+    """Ловит необработанные исключения и возвращает клиенту чистый 500 вместо
+    traceback'а; сам traceback по-прежнему пишется в лог сервера."""
 
     @app.exception_handler(Exception)
     async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:

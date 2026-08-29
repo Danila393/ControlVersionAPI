@@ -13,14 +13,8 @@ if sys.platform == "win32":
 
 
 class RetryableDeliveryError(Exception):
-    """
-    Поднимается из _send_webhook_delivery_async, когда неудача выглядит
-    временной (сеть моргнула / сервер подписчика ответил 5xx) — то есть
-    имеет смысл повторить попытку позже. Для постоянных ошибок (4xx —
-    неправильный URL/секрет, это не починится повторами) это исключение
-    НЕ поднимается — задача просто останется "failed" навсегда.
-    """
-    pass
+    """Временная неудача (сеть/5xx) — стоит повторить. На 4xx не поднимается,
+    повторами не чинится."""
 
 
 async def _send_webhook_delivery_async(delivery_id: int) -> dict:
@@ -60,11 +54,7 @@ async def _send_webhook_delivery_async(delivery_id: int) -> dict:
                     if response.status_code >= 500:
                         should_retry = True
 
-            # Важно: сначала сохраняем в базу, ЧТО случилось (неудачная попытка
-            # тоже должна остаться в истории) — и только ПОСЛЕ commit решаем,
-            # поднимать ли исключение. Если поднять исключение раньше commit,
-            # мы выйдем из `async with session` блока, и есть риск не сохранить
-            # эту попытку вообще.
+            # commit до raise — иначе неудачная попытка не попадёт в историю
             await session.commit()
 
     if should_retry:

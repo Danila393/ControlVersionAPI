@@ -95,10 +95,7 @@ class AnalyticsService:
             top_work_centers=[WorkCenterStats(**wc) for wc in top_work_centers],
             cached_at=datetime.now(UTC),
         )
-        # @cached хранит только JSON-совместимые данные (см. src/core/cache.py) —
-        # ORM-объекты или произвольные Python-объекты туда не положить, а
-        # Pydantic-модель через model_dump(mode="json") как раз превращается
-        # в обычный dict, который json.dumps умеет сериализовать.
+        # @cached хранит только JSON-совместимые данные, не сам объект схемы
         return response.model_dump(mode="json")
 
     async def compare_batches(self, batch_ids: list[int]) -> CompareBatchesResponse:

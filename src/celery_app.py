@@ -17,9 +17,7 @@ celery_app = Celery(
     ],
 )
 
-# beat_schedule — расписание для Celery Beat. Каждая запись говорит: "в такое-то
-# время положи в очередь вот эту задачу" (Beat её только планирует, а
-# выполняет её тот же worker, что и любую другую задачу из очереди).
+# Beat только планирует задачи по расписанию, выполняет их обычный worker
 celery_app.conf.beat_schedule = {
     "auto-close-expired-batches": {
         "task": "src.tasks.scheduled.auto_close_expired_batches",
