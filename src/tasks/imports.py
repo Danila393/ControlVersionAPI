@@ -1,4 +1,5 @@
 import asyncio
+import csv
 import os
 import sys
 import tempfile
@@ -22,15 +23,23 @@ if sys.platform == "win32":
 
 
 async def _import_batches_from_file_async(object_name: str, user_id: int | None) -> dict:
-    local_path = os.path.join(tempfile.gettempdir(), f"import_{uuid.uuid4().hex[:8]}.xlsx")
+    is_csv = object_name.lower().endswith(".csv")
+    extension = "csv" if is_csv else "xlsx"
+    local_path = os.path.join(tempfile.gettempdir(), f"import_{uuid.uuid4().hex[:8]}.{extension}")
 
     storage = MinIOService()
     storage.download_file(bucket="imports", object_name=object_name, file_path=local_path)
 
     try:
-        wb = load_workbook(local_path)
-        sheet = wb.active
-        rows = list(sheet.iter_rows(min_row=2, values_only=True))
+        if is_csv:
+            with open(local_path, encoding="utf-8-sig") as f:
+                reader = csv.reader(f, delimiter=";")
+                all_rows = list(reader)
+            rows = all_rows[1:]  # первая строка — заголовок
+        else:
+            wb = load_workbook(local_path)
+            sheet = wb.active
+            rows = list(sheet.iter_rows(min_row=2, values_only=True))
     finally:
         os.remove(local_path)
 

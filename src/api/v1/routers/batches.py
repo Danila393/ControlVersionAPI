@@ -168,7 +168,8 @@ async def aggregate_async(
 
 @router.post("/import", status_code=status.HTTP_202_ACCEPTED)
 async def import_batches(file: UploadFile = File(...)):
-    local_path = os.path.join(tempfile.gettempdir(), f"upload_{uuid.uuid4().hex[:8]}.xlsx")
+    extension = os.path.splitext(file.filename or "")[1] or ".xlsx"
+    local_path = os.path.join(tempfile.gettempdir(), f"upload_{uuid.uuid4().hex[:8]}{extension}")
     with open(local_path, "wb") as f:
         f.write(await file.read())
 

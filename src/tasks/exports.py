@@ -1,4 +1,5 @@
 import asyncio
+import csv
 import os
 import sys
 import tempfile
@@ -41,15 +42,12 @@ async def _export_batches_to_file_async(filters: dict, format: str = "excel") ->
             limit=100_000,
         )
 
-    wb = Workbook()
-    sheet = wb.active
-    sheet.title = "Партии"
-    sheet.append([
+    header = [
         "ID", "Номер партии", "Дата партии", "Статус", "Рабочий центр",
         "Смена", "Бригада", "Номенклатура", "Начало смены", "Окончание смены",
-    ])
-    for batch in batches:
-        sheet.append([
+    ]
+    rows = [
+        [
             batch.id,
             batch.batch_number,
             str(batch.batch_date),
@@ -60,11 +58,30 @@ async def _export_batches_to_file_async(filters: dict, format: str = "excel") ->
             batch.nomenclature,
             str(batch.shift_start),
             str(batch.shift_end),
-        ])
+        ]
+        for batch in batches
+    ]
 
-    file_name = f"batches_export_{uuid.uuid4().hex[:8]}.xlsx"
+    is_csv = format == "csv"
+    extension = "csv" if is_csv else "xlsx"
+    file_name = f"batches_export_{uuid.uuid4().hex[:8]}.{extension}"
     local_path = os.path.join(tempfile.gettempdir(), file_name)
-    wb.save(local_path)
+
+    if is_csv:
+        # utf-8-sig (BOM) + ";" — чтобы Excel в русской локали открыл файл
+        # с кириллицей и колонками сразу правильно, без ручного импорта.
+        with open(local_path, "w", newline="", encoding="utf-8-sig") as f:
+            writer = csv.writer(f, delimiter=";")
+            writer.writerow(header)
+            writer.writerows(rows)
+    else:
+        wb = Workbook()
+        sheet = wb.active
+        sheet.title = "Партии"
+        sheet.append(header)
+        for row in rows:
+            sheet.append(row)
+        wb.save(local_path)
 
     try:
         storage = MinIOService()
