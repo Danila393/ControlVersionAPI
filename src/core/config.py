@@ -13,4 +13,5 @@ class Settings(BaseSettings):
     minio_secure: bool = False
     model_config = SettingsConfigDict(env_file=".env")
 
+
 settings = Settings()

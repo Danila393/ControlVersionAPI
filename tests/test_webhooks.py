@@ -9,7 +9,11 @@ async def _create_webhook(client, url: str = "http://example.com/hook") -> dict:
 async def test_create_webhook_success(client):
     response = await client.post(
         "/api/v1/webhooks",
-        json={"url": "http://example.com/hook", "events": ["batch_created"], "secret_key": "s"},
+        json={
+            "url": "http://example.com/hook",
+            "events": ["batch_created"],
+            "secret_key": "s",
+        },
     )
 
     assert response.status_code == 201
@@ -45,9 +49,7 @@ async def test_delete_webhook(client):
     delete_response = await client.delete(f"/api/v1/webhooks/{webhook['id']}")
     assert delete_response.status_code == 204
 
-    get_response = await client.get(
-        f"/api/v1/webhooks/{webhook['id']}/deliveries"
-    )
+    get_response = await client.get(f"/api/v1/webhooks/{webhook['id']}/deliveries")
     assert get_response.status_code == 404
 
 

@@ -13,13 +13,17 @@ class AnalyticsRepository:
         self.session = session
 
     async def get_summary(self) -> dict:
-        total_batches = (await self.session.execute(select(func.count(Batch.id)))).scalar_one()
+        total_batches = (
+            await self.session.execute(select(func.count(Batch.id)))
+        ).scalar_one()
         active_batches = (
             await self.session.execute(
                 select(func.count(Batch.id)).where(Batch.is_closed == False)
             )
         ).scalar_one()
-        total_products = (await self.session.execute(select(func.count(Product.id)))).scalar_one()
+        total_products = (
+            await self.session.execute(select(func.count(Product.id)))
+        ).scalar_one()
         aggregated_products = (
             await self.session.execute(
                 select(func.count(Product.id)).where(Product.is_aggregated == True)
@@ -47,12 +51,16 @@ class AnalyticsRepository:
         ).scalar_one()
         products_added = (
             await self.session.execute(
-                select(func.count(Product.id)).where(func.date(Product.created_at) == today)
+                select(func.count(Product.id)).where(
+                    func.date(Product.created_at) == today
+                )
             )
         ).scalar_one()
         products_aggregated = (
             await self.session.execute(
-                select(func.count(Product.id)).where(func.date(Product.aggregated_at) == today)
+                select(func.count(Product.id)).where(
+                    func.date(Product.aggregated_at) == today
+                )
             )
         ).scalar_one()
 
@@ -114,17 +122,21 @@ class AnalyticsRepository:
 
         rows = []
         for identifier, name, batches_count in batches_per_wc:
-            products_count, aggregated_count = products_by_identifier.get(identifier, (0, 0))
+            products_count, aggregated_count = products_by_identifier.get(
+                identifier, (0, 0)
+            )
             aggregation_rate = (
                 aggregated_count / products_count * 100 if products_count > 0 else 0
             )
-            rows.append({
-                "id": identifier,
-                "name": name,
-                "batches_count": batches_count,
-                "products_count": products_count,
-                "aggregation_rate": aggregation_rate,
-            })
+            rows.append(
+                {
+                    "id": identifier,
+                    "name": name,
+                    "batches_count": batches_count,
+                    "products_count": products_count,
+                    "aggregation_rate": aggregation_rate,
+                }
+            )
 
         rows.sort(key=lambda r: r["batches_count"], reverse=True)
         return rows[:limit]

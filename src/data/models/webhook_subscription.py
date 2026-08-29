@@ -21,6 +21,10 @@ class WebhookSubscription(Base):
     timeout: Mapped[int] = mapped_column(default=10)
 
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        server_default=func.now(), onupdate=func.now()
+    )
 
-    deliveries: Mapped[list["WebhookDelivery"]] = relationship(back_populates="subscription")  # noqa: F821 — forward ref, класс в другом модуле
+    deliveries: Mapped[list["WebhookDelivery"]] = relationship(
+        back_populates="subscription"
+    )  # noqa: F821 — forward ref, класс в другом модуле

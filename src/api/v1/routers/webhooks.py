@@ -18,8 +18,7 @@ router = APIRouter(prefix="/api/v1/webhooks", tags=["webhooks"])
 
 @router.post("", response_model=WebhookRead, status_code=status.HTTP_201_CREATED)
 async def create_webhook(
-    payload: WebhookCreate,
-    session: AsyncSession = Depends(get_db)
+    payload: WebhookCreate, session: AsyncSession = Depends(get_db)
 ):
     service = WebhookService(
         webhook_repo=WebhookRepository(session),
@@ -41,9 +40,9 @@ async def list_webhooks(
 
 @router.patch("/{webhook_id}", response_model=WebhookRead)
 async def update_webhooks(
-        webhook_id: int,
-        payload: WebhookUpdate,
-        session: AsyncSession = Depends(get_db),
+    webhook_id: int,
+    payload: WebhookUpdate,
+    session: AsyncSession = Depends(get_db),
 ):
     service = WebhookService(
         webhook_repo=WebhookRepository(session),

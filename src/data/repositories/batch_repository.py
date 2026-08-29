@@ -67,7 +67,9 @@ class BatchRepository:
         if shift is not None:
             query = query.where(Batch.shift == shift)
         if work_center_identifier is not None:
-            query = query.join(WorkCenter, WorkCenter.id == Batch.work_center_id).where(WorkCenter.identifier == work_center_identifier)
+            query = query.join(WorkCenter, WorkCenter.id == Batch.work_center_id).where(
+                WorkCenter.identifier == work_center_identifier
+            )
 
         query = query.offset(offset).limit(limit)
 

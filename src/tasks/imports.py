@@ -22,13 +22,19 @@ if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
-async def _import_batches_from_file_async(object_name: str, user_id: int | None) -> dict:
+async def _import_batches_from_file_async(
+    object_name: str, user_id: int | None
+) -> dict:
     is_csv = object_name.lower().endswith(".csv")
     extension = "csv" if is_csv else "xlsx"
-    local_path = os.path.join(tempfile.gettempdir(), f"import_{uuid.uuid4().hex[:8]}.{extension}")
+    local_path = os.path.join(
+        tempfile.gettempdir(), f"import_{uuid.uuid4().hex[:8]}.{extension}"
+    )
 
     storage = MinIOService()
-    storage.download_file(bucket="imports", object_name=object_name, file_path=local_path)
+    storage.download_file(
+        bucket="imports", object_name=object_name, file_path=local_path
+    )
 
     try:
         if is_csv:
@@ -55,22 +61,39 @@ async def _import_batches_from_file_async(object_name: str, user_id: int | None)
 
         for row_number, row in enumerate(rows, start=2):
             (
-                batch_number, batch_date, nomenclature, work_center_name,
-                work_center_identifier, shift, team, ekn_code,
-                task_description, shift_start, shift_end,
+                batch_number,
+                batch_date,
+                nomenclature,
+                work_center_name,
+                work_center_identifier,
+                shift,
+                team,
+                ekn_code,
+                task_description,
+                shift_start,
+                shift_end,
             ) = row
 
             try:
                 batch_data = BatchCreate(
-                    batch_number=batch_number, batch_date=batch_date, nomenclature=nomenclature,
-                    work_center_name=work_center_name, work_center_identifier=work_center_identifier,
-                    shift=shift, team=team, ekn_code=ekn_code, task_description=task_description,
-                    shift_start=shift_start, shift_end=shift_end,
+                    batch_number=batch_number,
+                    batch_date=batch_date,
+                    nomenclature=nomenclature,
+                    work_center_name=work_center_name,
+                    work_center_identifier=work_center_identifier,
+                    shift=shift,
+                    team=team,
+                    ekn_code=ekn_code,
+                    task_description=task_description,
+                    shift_start=shift_start,
+                    shift_end=shift_end,
                 )
                 await service.create_batch(batch_data)
                 created += 1
             except BatchAlreadyExistsError:
-                errors.append({"row": row_number, "error": "Duplicate batch number and date"})
+                errors.append(
+                    {"row": row_number, "error": "Duplicate batch number and date"}
+                )
             except (ValueError, TypeError) as e:
                 errors.append({"row": row_number, "error": f"Invalid row data: {e}"})
 

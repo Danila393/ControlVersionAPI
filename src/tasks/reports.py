@@ -27,7 +27,11 @@ if sys.platform == "win32":
 # из проекта (см. fonts/README.md), затем — системный Arial как запасной вариант.
 _CYRILLIC_FONT = "CyrillicFont"
 _CYRILLIC_FONT_CANDIDATES = [
-    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "fonts", "DejaVuSans.ttf"),
+    os.path.join(
+        os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+        "fonts",
+        "DejaVuSans.ttf",
+    ),
     "C:/Windows/Fonts/arial.ttf",
 ]
 if _CYRILLIC_FONT not in pdfmetrics.getRegisteredFontNames():
@@ -55,19 +59,23 @@ def _build_report_workbook(batch) -> Workbook:
     products_sheet = wb.create_sheet("Продукция")
     products_sheet.append(["ID", "Уникальный код", "Аггрегирована", "Дата аггрегации"])
     for product in batch.products:
-        products_sheet.append([
-            product.id,
-            product.unique_code,
-            "Да" if product.is_aggregated else "Нет",
-            str(product.aggregated_at) if product.aggregated_at else "-",
-        ])
+        products_sheet.append(
+            [
+                product.id,
+                product.unique_code,
+                "Да" if product.is_aggregated else "Нет",
+                str(product.aggregated_at) if product.aggregated_at else "-",
+            ]
+        )
 
     total, aggregated_count, avg_speed = _stats(batch)
     statistics_sheet = wb.create_sheet("Статистика")
     statistics_sheet.append(["Всего продукции:", total])
     statistics_sheet.append(["Аггрегировано:", aggregated_count])
     statistics_sheet.append(["Осталось", total - aggregated_count])
-    statistics_sheet.append(["Процент выполнения", aggregated_count / total * 100 if total > 0 else 0])
+    statistics_sheet.append(
+        ["Процент выполнения", aggregated_count / total * 100 if total > 0 else 0]
+    )
     statistics_sheet.append(["Средняя скорость:", avg_speed])
 
     return wb
@@ -85,7 +93,11 @@ def _build_report_pdf(batch, local_path: str) -> None:
     total, aggregated_count, avg_speed = _stats(batch)
 
     styles = getSampleStyleSheet()
-    font = _CYRILLIC_FONT if _CYRILLIC_FONT in pdfmetrics.getRegisteredFontNames() else "Helvetica"
+    font = (
+        _CYRILLIC_FONT
+        if _CYRILLIC_FONT in pdfmetrics.getRegisteredFontNames()
+        else "Helvetica"
+    )
     heading = ParagraphStyle("heading", parent=styles["Heading1"], fontName=font)
     body = ParagraphStyle("body", parent=styles["Normal"], fontName=font)
 
@@ -104,16 +116,21 @@ def _build_report_pdf(batch, local_path: str) -> None:
         ["Всего продукции:", str(total)],
         ["Аггрегировано:", str(aggregated_count)],
         ["Осталось:", str(total - aggregated_count)],
-        ["Процент выполнения:", f"{aggregated_count / total * 100 if total > 0 else 0:.1f}%"],
+        [
+            "Процент выполнения:",
+            f"{aggregated_count / total * 100 if total > 0 else 0:.1f}%",
+        ],
         ["Средняя скорость:", f"{avg_speed:.2f} ед/час"],
     ]
 
-    table_style = TableStyle([
-        ("FONTNAME", (0, 0), (-1, -1), font),
-        ("FONTSIZE", (0, 0), (-1, -1), 10),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
-    ])
+    table_style = TableStyle(
+        [
+            ("FONTNAME", (0, 0), (-1, -1), font),
+            ("FONTSIZE", (0, 0), (-1, -1), 10),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
+        ]
+    )
 
     doc = SimpleDocTemplate(local_path, pagesize=A4)
     elements = [
@@ -181,5 +198,7 @@ async def _generate_batch_report_async(batch_id: int, format: str = "excel") -> 
 
 
 @celery_app.task(bind=True, max_retries=3)
-def generate_batch_report(self, batch_id: int, format: str = "excel", user_email: str | None = None) -> dict:
+def generate_batch_report(
+    self, batch_id: int, format: str = "excel", user_email: str | None = None
+) -> dict:
     return asyncio.run(_generate_batch_report_async(batch_id, format))

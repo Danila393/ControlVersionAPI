@@ -12,7 +12,9 @@ class Product(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
 
     unique_code: Mapped[str] = mapped_column(unique=True, nullable=False, index=True)
-    batch_id: Mapped[int] = mapped_column(ForeignKey("batches.id"), nullable=False, index=True)
+    batch_id: Mapped[int] = mapped_column(
+        ForeignKey("batches.id"), nullable=False, index=True
+    )
 
     is_aggregated: Mapped[bool] = mapped_column(default=False, index=True)
     aggregated_at: Mapped[datetime | None] = mapped_column(nullable=True)

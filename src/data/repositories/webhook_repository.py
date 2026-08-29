@@ -21,15 +21,12 @@ class WebhookRepository:
         return subscription
 
     async def list_all(self) -> list[WebhookSubscription]:
-        result = await self.session.execute(
-            select(WebhookSubscription)
-        )
+        result = await self.session.execute(select(WebhookSubscription))
         return list(result.scalars().all())
 
     async def get_by_id(self, webhook_id: int) -> WebhookSubscription | None:
         result = await self.session.execute(
-            select(WebhookSubscription)
-            .where(WebhookSubscription.id == webhook_id)
+            select(WebhookSubscription).where(WebhookSubscription.id == webhook_id)
         )
         return result.scalar_one_or_none()
 
@@ -49,15 +46,15 @@ class WebhookRepository:
         self, subscription_id: int
     ) -> list[WebhookDelivery]:
         result = await self.session.execute(
-            select(WebhookDelivery)
-            .where(WebhookDelivery.subscription_id == subscription_id)
+            select(WebhookDelivery).where(
+                WebhookDelivery.subscription_id == subscription_id
+            )
         )
         return list(result.scalars().all())
 
     async def list_active_by_event(self, event_type: str) -> list[WebhookSubscription]:
         result = await self.session.execute(
-            select(WebhookSubscription)
-            .where(
+            select(WebhookSubscription).where(
                 WebhookSubscription.is_active == True,
                 event_type == any_(WebhookSubscription.events),
             )
@@ -86,4 +83,3 @@ class WebhookRepository:
             select(WebhookDelivery).where(WebhookDelivery.status == "failed")
         )
         return list(result.scalars().all())
-

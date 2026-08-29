@@ -47,7 +47,9 @@ class AnalyticsService:
 
         estimated_completion = None
         if total > 0 and products_per_hour > 0:
-            estimated_completion = batch.shift_start + timedelta(hours=total / products_per_hour)
+            estimated_completion = batch.shift_start + timedelta(
+                hours=total / products_per_hour
+            )
 
         return BatchStatisticsResponse(
             batch_info=BatchInfo(
@@ -78,7 +80,9 @@ class AnalyticsService:
     @cached(ttl=300, key_prefix="dashboard_stats")
     async def get_dashboard_statistics(self) -> dict:
         summary = await self.analytics_repo.get_summary()
-        today_counts = await self.analytics_repo.get_today_counts(datetime.now(UTC).date())
+        today_counts = await self.analytics_repo.get_today_counts(
+            datetime.now(UTC).date()
+        )
         by_shift = await self.analytics_repo.get_by_shift()
         top_work_centers = await self.analytics_repo.get_top_work_centers()
 
@@ -109,8 +113,12 @@ class AnalyticsService:
             total = len(batch.products)
             aggregated_count = sum(1 for p in batch.products if p.is_aggregated)
             rate = aggregated_count / total * 100 if total > 0 else 0
-            duration_hours = (batch.shift_end - batch.shift_start).total_seconds() / 3600
-            products_per_hour = aggregated_count / duration_hours if duration_hours > 0 else 0
+            duration_hours = (
+                batch.shift_end - batch.shift_start
+            ).total_seconds() / 3600
+            products_per_hour = (
+                aggregated_count / duration_hours if duration_hours > 0 else 0
+            )
 
             comparison.append(
                 BatchComparisonItem(
@@ -126,7 +134,9 @@ class AnalyticsService:
 
         if comparison:
             avg_rate = sum(item.rate for item in comparison) / len(comparison)
-            avg_speed = sum(item.products_per_hour for item in comparison) / len(comparison)
+            avg_speed = sum(item.products_per_hour for item in comparison) / len(
+                comparison
+            )
         else:
             avg_rate = 0
             avg_speed = 0

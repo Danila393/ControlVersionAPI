@@ -36,6 +36,7 @@ app.include_router(webhooks_router)
 app.include_router(tasks_router)
 app.include_router(analytics_router)
 
+
 @app.get("/health")
 async def health_check() -> dict[str, str]:
     """Проверяет, что приложение запущено и отвечает на запросы."""

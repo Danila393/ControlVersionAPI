@@ -58,7 +58,7 @@ class ProductService:
             )
         else:
             product.is_aggregated = True
-            product.aggregated_at=datetime.now(UTC)
+            product.aggregated_at = datetime.now(UTC)
 
         product = await self.product_repo.update(product)
 

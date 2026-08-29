@@ -9,7 +9,9 @@ router = APIRouter(prefix="/api/v1/tasks", tags=["tasks"])
 
 @router.get("/{task_id}", response_model=TaskStatusResponse)
 async def get_task_status(task_id: str):
-    async_result = AsyncResult(task_id, app=celery_app)  # создай AsyncResult, как я объяснил выше
+    async_result = AsyncResult(
+        task_id, app=celery_app
+    )  # создай AsyncResult, как я объяснил выше
     return TaskStatusResponse(
         task_id=task_id,
         status=async_result.status,  # у AsyncResult есть атрибут .status

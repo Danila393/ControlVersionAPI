@@ -9,10 +9,7 @@ from src.tasks.webhooks import send_webhook_delivery
 
 
 class WebhookService:
-    def __init__(
-        self,
-        webhook_repo: WebhookRepository
-    ):
+    def __init__(self, webhook_repo: WebhookRepository):
         self.webhook_repo = webhook_repo
 
     async def create_webhook(self, data: WebhookCreate) -> WebhookSubscription:
@@ -28,16 +25,16 @@ class WebhookService:
     async def list_webhook(self) -> list[WebhookSubscription]:
         return await self.webhook_repo.list_all()
 
-
     async def get_webhooks(self, webhook_id: int) -> WebhookSubscription:
         webhook = await self.webhook_repo.get_by_id(webhook_id)
         if webhook is None:
             raise WebhookNotFoundError(f"WebhookSubscription {webhook_id} not found")
         return webhook
 
-
-    async def update_webhook(self, webhook_id: int, data: WebhookUpdate) -> WebhookSubscription:
-        webhook = await  self.webhook_repo.get_by_id(webhook_id)
+    async def update_webhook(
+        self, webhook_id: int, data: WebhookUpdate
+    ) -> WebhookSubscription:
+        webhook = await self.webhook_repo.get_by_id(webhook_id)
         if webhook is None:
             raise WebhookNotFoundError(f"Webhook {webhook_id} not found")
 

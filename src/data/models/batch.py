@@ -15,7 +15,9 @@ class Batch(Base):
     closed_at: Mapped[datetime | None] = mapped_column(nullable=True)
 
     task_description: Mapped[str] = mapped_column(nullable=False)
-    work_center_id: Mapped[int] = mapped_column(ForeignKey("work_centers.id"), nullable=False)
+    work_center_id: Mapped[int] = mapped_column(
+        ForeignKey("work_centers.id"), nullable=False
+    )
     shift: Mapped[str] = mapped_column(nullable=False)
     team: Mapped[str] = mapped_column(nullable=False)
 
@@ -29,7 +31,9 @@ class Batch(Base):
     shift_end: Mapped[datetime] = mapped_column(nullable=False)
 
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        server_default=func.now(), onupdate=func.now()
+    )
 
     work_center: Mapped["WorkCenter"] = relationship()  # noqa: F821 — forward ref, класс в другом модуле
     products: Mapped[list["Product"]] = relationship(back_populates="batch")  # noqa: F821
@@ -39,5 +43,3 @@ class Batch(Base):
         Index("idx_batch_closed", "is_closed"),
         Index("idx_batch_shift_times", "shift_start", "shift_end"),
     )
-
-

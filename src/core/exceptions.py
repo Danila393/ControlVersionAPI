@@ -11,8 +11,12 @@ def register_exception_handlers(app: FastAPI) -> None:
     traceback'а; сам traceback по-прежнему пишется в лог сервера."""
 
     @app.exception_handler(Exception)
-    async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-        logger.exception("Unhandled exception on %s %s", request.method, request.url.path)
+    async def unhandled_exception_handler(
+        request: Request, exc: Exception
+    ) -> JSONResponse:
+        logger.exception(
+            "Unhandled exception on %s %s", request.method, request.url.path
+        )
         return JSONResponse(
             status_code=500,
             content={"detail": "Внутренняя ошибка сервера"},

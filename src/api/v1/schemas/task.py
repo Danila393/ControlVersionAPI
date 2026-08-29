@@ -25,4 +25,3 @@ class ExportFilters(BaseModel):
 class ExportRequest(BaseModel):
     format: str = "excel"
     filters: ExportFilters = ExportFilters()
-

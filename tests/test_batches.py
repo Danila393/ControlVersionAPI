@@ -1,4 +1,6 @@
-def _batch_payload(batch_number: int = 1, work_center_identifier: str = "RC-TEST") -> dict:
+def _batch_payload(
+    batch_number: int = 1, work_center_identifier: str = "RC-TEST"
+) -> dict:
     # batch_number параметризован — batch_number+batch_date уникальны (uq_batch_number_date)
     return {
         "СтатусЗакрытия": False,
@@ -17,7 +19,9 @@ def _batch_payload(batch_number: int = 1, work_center_identifier: str = "RC-TEST
 
 
 async def test_create_batch_success(client):
-    response = await client.post("/api/v1/batches", json=[_batch_payload(batch_number=1)])
+    response = await client.post(
+        "/api/v1/batches", json=[_batch_payload(batch_number=1)]
+    )
 
     assert response.status_code == 201
     body = response.json()
@@ -44,7 +48,9 @@ async def test_get_batch_not_found_returns_404(client):
 
 
 async def test_get_batch_success(client):
-    created = await client.post("/api/v1/batches", json=[_batch_payload(batch_number=3)])
+    created = await client.post(
+        "/api/v1/batches", json=[_batch_payload(batch_number=3)]
+    )
     batch_id = created.json()[0]["id"]
 
     response = await client.get(f"/api/v1/batches/{batch_id}")
@@ -54,10 +60,14 @@ async def test_get_batch_success(client):
 
 
 async def test_update_batch_closing_sets_closed_at(client):
-    created = await client.post("/api/v1/batches", json=[_batch_payload(batch_number=4)])
+    created = await client.post(
+        "/api/v1/batches", json=[_batch_payload(batch_number=4)]
+    )
     batch_id = created.json()[0]["id"]
 
-    response = await client.patch(f"/api/v1/batches/{batch_id}", json={"is_closed": True})
+    response = await client.patch(
+        f"/api/v1/batches/{batch_id}", json={"is_closed": True}
+    )
 
     assert response.status_code == 200
     assert response.json()["is_closed"] is True
