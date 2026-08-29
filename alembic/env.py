@@ -8,7 +8,7 @@ from alembic import context
 
 sys.path.append(str(Path(__file__).resolve().parents[1]))
 
-import src.data.models
+import src.data.models  # noqa: F401 — регистрирует модели в Base.metadata для autogenerate
 from src.core.config import settings
 from src.core.database import Base
 

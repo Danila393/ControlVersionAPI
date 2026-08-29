@@ -1,6 +1,5 @@
-from datetime import UTC, date, datetime
+from datetime import UTC, datetime
 
-from sqlalchemy.exc import IntegrityError
 
 from src.api.v1.schemas.webhook import WebhookCreate, WebhookUpdate
 from src.data.models.webhook_delivery import WebhookDelivery
