@@ -23,14 +23,18 @@ from src.storage.minio_service import MinIOService
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-# Встроенные шрифты reportlab (Helvetica и т.п.) не умеют в кириллицу — нужен
-# TTF-шрифт со всеми буквами. Берём системный Arial (есть в Windows) —
-# это дев-окружение; для реального деплоя (например, в Docker/Linux)
-# шрифт нужно будет положить файлом прямо в проект, а не полагаться на ОС.
-_CYRILLIC_FONT = "Arial"
-_WINDOWS_ARIAL_PATH = "C:/Windows/Fonts/arial.ttf"
-if _CYRILLIC_FONT not in pdfmetrics.getRegisteredFontNames() and os.path.exists(_WINDOWS_ARIAL_PATH):
-    pdfmetrics.registerFont(TTFont(_CYRILLIC_FONT, _WINDOWS_ARIAL_PATH))
+# Встроенные шрифты reportlab не умеют в кириллицу. Сначала пробуем шрифт
+# из проекта (см. fonts/README.md), затем — системный Arial как запасной вариант.
+_CYRILLIC_FONT = "CyrillicFont"
+_CYRILLIC_FONT_CANDIDATES = [
+    os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "fonts", "DejaVuSans.ttf"),
+    "C:/Windows/Fonts/arial.ttf",
+]
+if _CYRILLIC_FONT not in pdfmetrics.getRegisteredFontNames():
+    for _font_path in _CYRILLIC_FONT_CANDIDATES:
+        if os.path.exists(_font_path):
+            pdfmetrics.registerFont(TTFont(_CYRILLIC_FONT, _font_path))
+            break
 
 
 def _build_report_workbook(batch) -> Workbook:
