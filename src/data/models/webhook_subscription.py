@@ -23,4 +23,4 @@ class WebhookSubscription(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
-    deliveries: Mapped[list["WebhookDelivery"]] = relationship(back_populates="subscription")
+    deliveries: Mapped[list["WebhookDelivery"]] = relationship(back_populates="subscription")  # noqa: F821 — forward ref, класс в другом модуле

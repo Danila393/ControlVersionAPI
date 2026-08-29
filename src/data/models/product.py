@@ -19,7 +19,7 @@ class Product(Base):
 
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
-    batch: Mapped["Batch"] = relationship(back_populates="products")
+    batch: Mapped["Batch"] = relationship(back_populates="products")  # noqa: F821 — forward ref, класс в другом модуле
 
     __table_args__ = (
         Index("idx_product_batch_aggregated", "batch_id", "is_aggregated"),

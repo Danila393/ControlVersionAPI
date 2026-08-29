@@ -31,8 +31,8 @@ class Batch(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
-    work_center: Mapped["WorkCenter"] = relationship()
-    products: Mapped[list["Product"]] = relationship(back_populates="batch")
+    work_center: Mapped["WorkCenter"] = relationship()  # noqa: F821 — forward ref, класс в другом модуле
+    products: Mapped[list["Product"]] = relationship(back_populates="batch")  # noqa: F821
 
     __table_args__ = (
         UniqueConstraint("batch_number", "batch_date", name="uq_batch_number_date"),

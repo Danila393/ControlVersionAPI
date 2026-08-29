@@ -13,8 +13,11 @@ asyncio_default_test_loop_scope = "session"
 [tool.ruff]
 line-length = 88
 target-version = "py312"
+extend-exclude = ["alembic/versions"]  # сгенерированные снапшоты миграций, руками не правим
 
 [tool.ruff.lint]
 ignore = [
     "B008",  # Depends(get_db)/File(...) — не выполняются при определении роутера, это FastAPI DI-паттерн
+    "DTZ005",  # datetime.now() без tz — везде naive, консистентно с колонками БД (TIMESTAMP без timezone=True)
+    "ASYNC230",  # open() в async-тасках безопасен: каждый Celery-таск крутится в своём asyncio.run(), конкурирующих корутин нет
 ]

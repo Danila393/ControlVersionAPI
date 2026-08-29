@@ -1,5 +1,6 @@
 import http.server
 import threading
+from typing import ClassVar
 
 import pytest
 
@@ -10,7 +11,7 @@ from tests.conftest import TestSessionLocal
 
 
 class _Handler(http.server.BaseHTTPRequestHandler):
-    received: list[bytes] = []
+    received: ClassVar[list[bytes]] = []
 
     def do_POST(self):
         length = int(self.headers.get("Content-Length", 0))
