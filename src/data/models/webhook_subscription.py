@@ -25,6 +25,6 @@ class WebhookSubscription(Base):
         server_default=func.now(), onupdate=func.now()
     )
 
-    deliveries: Mapped[list["WebhookDelivery"]] = relationship(
+    deliveries: Mapped[list["WebhookDelivery"]] = relationship(  # noqa: F821 — forward ref, класс в другом модуле
         back_populates="subscription"
-    )  # noqa: F821 — forward ref, класс в другом модуле
+    )
