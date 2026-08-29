@@ -70,7 +70,7 @@ services:
       retries: 3
 
   # Flower (Celery Monitoring) — подключается напрямую к брокеру/бэкенду,
-  # отдельный worker-контейнер ему не нужен (worker всё ещё гоняем локально)
+  # отдельный worker-контейнер ему не нужен для самого мониторинга
   flower:
     image: mher/flower:2.0
     container_name: production_control_flower
@@ -83,6 +83,88 @@ services:
       CELERY_BROKER_URL: amqp://admin:admin@rabbitmq:5672//
       CELERY_RESULT_BACKEND: redis://redis:6379/0
       FLOWER_PORT: 5555
+
+  # --- Ниже — контейнеризованные api/worker/beat, ОПЦИОНАЛЬНЫ ---
+  # По умолчанию (`docker compose up -d`) не запускаются — весь этот сеанс
+  # разработки API/worker/beat гонялись локально из venv (см. README), и
+  # порт 8000 у локального uvicorn совпадает с портом api-контейнера, так
+  # что оба разом не поднять. Чтобы явно попробовать полностью
+  # контейнеризованный стек: `docker compose --profile full up -d`
+  # (тогда локальный uvicorn/celery запускать не нужно).
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: production_control_api
+    profiles: ["full"]
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@postgres:5432/production_control
+      CELERY_BROKER_URL: amqp://admin:admin@rabbitmq:5672//
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      REDIS_URL: redis://redis:6379/1
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_SECURE: "false"
+
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: production_control_worker
+    profiles: ["full"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@postgres:5432/production_control
+      CELERY_BROKER_URL: amqp://admin:admin@rabbitmq:5672//
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      REDIS_URL: redis://redis:6379/1
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_SECURE: "false"
+    # На Linux --pool=solo не нужен (это был обход отсутствия os.fork на
+    # Windows) — дефолтный prefork-пул внутри контейнера работает нормально.
+    command: celery -A src.celery_app worker --loglevel=info
+
+  celery_beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: production_control_beat
+    profiles: ["full"]
+    depends_on:
+      - rabbitmq
+      - redis
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@postgres:5432/production_control
+      CELERY_BROKER_URL: amqp://admin:admin@rabbitmq:5672//
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      REDIS_URL: redis://redis:6379/1
+      MINIO_ENDPOINT: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+      MINIO_SECURE: "false"
+    command: celery -A src.celery_app beat --loglevel=info
 
 volumes:
   postgres_data:
