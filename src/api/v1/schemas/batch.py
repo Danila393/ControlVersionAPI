@@ -1,6 +1,8 @@
 from datetime import date, datetime
-from src.api.v1.schemas.product import ProductRead
+
 from pydantic import BaseModel, ConfigDict, Field
+
+from src.api.v1.schemas.product import ProductRead
 
 
 class BatchCreate(BaseModel):

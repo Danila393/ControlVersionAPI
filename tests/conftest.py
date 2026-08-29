@@ -10,8 +10,8 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from src.core.cache import invalidate
-from src.core.database import Base, get_db
 from src.core.config import settings
+from src.core.database import Base, get_db
 from src.main import app
 
 TEST_DATABASE_URL = settings.database_url.rsplit("/", 1)[0] + "/production_control_test"

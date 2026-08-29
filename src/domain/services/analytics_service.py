@@ -1,9 +1,5 @@
 from datetime import UTC, datetime, timedelta
 
-from src.core.cache import cached
-from src.data.repositories.analytics_repository import AnalyticsRepository
-from src.data.repositories.batch_repository import BatchRepository
-from src.domain.exceptions import BatchNotFoundError
 from src.api.v1.schemas.analytics import (
     BatchComparisonItem,
     BatchInfo,
@@ -19,6 +15,10 @@ from src.api.v1.schemas.analytics import (
     Timeline,
     WorkCenterStats,
 )
+from src.core.cache import cached
+from src.data.repositories.analytics_repository import AnalyticsRepository
+from src.data.repositories.batch_repository import BatchRepository
+from src.domain.exceptions import BatchNotFoundError
 
 
 class AnalyticsService:

@@ -9,8 +9,8 @@ from slowapi.middleware import SlowAPIMiddleware
 from src.api.v1.routers.analytics import router as analytics_router
 from src.api.v1.routers.batches import router as batches_router
 from src.api.v1.routers.products import router as products_router
-from src.api.v1.routers.webhooks import router as webhooks_router
 from src.api.v1.routers.tasks import router as tasks_router
+from src.api.v1.routers.webhooks import router as webhooks_router
 from src.core.exceptions import register_exception_handlers
 from src.core.rate_limit import limiter
 

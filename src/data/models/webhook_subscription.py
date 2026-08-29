@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import String, func, ARRAY
+from sqlalchemy import ARRAY, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.database import Base

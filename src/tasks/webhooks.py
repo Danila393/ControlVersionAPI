@@ -1,12 +1,13 @@
-from datetime import datetime, UTC
 import asyncio
 import sys
+from datetime import UTC, datetime
+
+import httpx
+
 from src.celery_app import celery_app
 from src.core.database import AsyncSessionLocal
 from src.data.repositories.webhook_repository import WebhookRepository
 from src.utils.hmac_utils import sign_payload
-import httpx
-
 
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())

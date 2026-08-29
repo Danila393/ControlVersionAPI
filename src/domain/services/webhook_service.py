@@ -1,4 +1,4 @@
-from datetime import date, datetime, UTC
+from datetime import UTC, date, datetime
 
 from sqlalchemy.exc import IntegrityError
 
@@ -6,8 +6,8 @@ from src.api.v1.schemas.webhook import WebhookCreate, WebhookUpdate
 from src.data.models.webhook_delivery import WebhookDelivery
 from src.data.models.webhook_subscription import WebhookSubscription
 from src.data.repositories.webhook_repository import WebhookRepository
-from src.tasks.webhooks import send_webhook_delivery
 from src.domain.exceptions import WebhookNotFoundError
+from src.tasks.webhooks import send_webhook_delivery
 
 
 class WebhookService:

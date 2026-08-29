@@ -10,7 +10,6 @@ from src.domain.exceptions import BatchNotFoundError, ProductAlreadyExistsError
 from src.domain.services.product_service import ProductService
 from src.domain.services.webhook_service import WebhookService
 
-
 router = APIRouter(prefix="/api/v1/products", tags=["products"])
 
 

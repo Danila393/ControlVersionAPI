@@ -1,8 +1,9 @@
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 
 from sqlalchemy.exc import IntegrityError
 
 from src.api.v1.schemas.product import ProductCreate
+from src.core.cache import invalidate
 from src.data.models.product import Product
 from src.data.repositories.batch_repository import BatchRepository
 from src.data.repositories.product_repository import ProductRepository
@@ -13,7 +14,6 @@ from src.domain.exceptions import (
     ProductNotFoundError,
 )
 from src.domain.services.webhook_service import WebhookService
-from src.core.cache import invalidate
 
 
 class ProductService:

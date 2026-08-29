@@ -6,12 +6,12 @@ from src.core.database import AsyncSessionLocal
 from src.data.repositories.batch_repository import BatchRepository
 from src.data.repositories.product_repository import ProductRepository
 from src.data.repositories.webhook_repository import WebhookRepository
+from src.domain.exceptions import (
+    ProductAlreadyAggregatedError,
+    ProductNotFoundError,
+)
 from src.domain.services.product_service import ProductService
 from src.domain.services.webhook_service import WebhookService
-from src.domain.exceptions import (
-    ProductNotFoundError,
-    ProductAlreadyAggregatedError,
-)
 
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
