@@ -9,6 +9,7 @@ import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
+from src.core.cache import invalidate
 from src.core.database import Base, get_db
 from src.core.config import settings
 from src.main import app
@@ -30,16 +31,28 @@ async def setup_database():
         await conn.run_sync(Base.metadata.drop_all)
 
 
-@pytest_asyncio.fixture(autouse=True)
-async def clean_tables():
+async def _reset_state():
     # Транзакция-с-откатом тут не подходит: прикладной код сам вызывает
     # session.commit() (репозитории/роутеры), так что откат снаружи ничего
-    # не отменит без SAVEPOINT-обвязки. Проще чистить таблицы после каждого теста.
-    yield
-
+    # не отменит без SAVEPOINT-обвязки. Проще чистить таблицы явно.
     async with test_engine.begin() as conn:
         for table in reversed(Base.metadata.sorted_tables):
             await conn.execute(table.delete())
+
+    # @cached кладёт данные в Redis отдельно от SQL и не знает о тестовой
+    # БД — не сбросишь, будешь читать чужой кэш (в том числе от ручных
+    # прогонов на рабочей базе, а не только от прошлых тестов).
+    await invalidate("dashboard_stats", "batches_list", "batch_detail")
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def clean_tables():
+    # До теста — на случай если что-то осталось от ручных прогонов приложения
+    # или от теста, упавшего до своей же уборки. После — чтобы не оставлять
+    # мусор следующему тесту.
+    await _reset_state()
+    yield
+    await _reset_state()
 
 
 @pytest_asyncio.fixture
