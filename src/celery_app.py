@@ -29,4 +29,12 @@ celery_app.conf.beat_schedule = {
         "task": "src.tasks.scheduled.retry_failed_webhooks",
         "schedule": crontab(minute="*/15"),
     },
+    "cleanup-old-files": {
+        "task": "src.tasks.scheduled.cleanup_old_files",
+        "schedule": crontab(hour=2, minute=0),
+    },
+    "update-cached-statistics": {
+        "task": "src.tasks.scheduled.update_cached_statistics",
+        "schedule": crontab(minute="*/5"),
+    },
 }
