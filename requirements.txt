@@ -1,16 +1,30 @@
-fastapi
-uvicorn[standard]
+fastapi==0.141.1
+uvicorn[standard]==0.52.3
 
-pydantic-settings
+pydantic-settings==2.15.0
 
-sqlalchemy[asyncio]>=2.0
-psycopg[binary]
+sqlalchemy[asyncio]==2.0.52
+psycopg[binary]==3.3.4
 
-alembic
+alembic==1.19.1
 
-celery
-redis
+celery==5.6.3
+redis==8.1.0
 
-minio
+minio==7.2.20
 
-slowapi
+slowapi==0.1.10
+
+httpx==0.28.1
+
+openpyxl==3.1.5
+python-multipart==0.0.32
+
+pytest==9.1.1
+pytest-asyncio==1.4.0
+
+reportlab==5.0.1
+
+# dev-инструменты (линтинг, git-хуки)
+ruff==0.16.5
+pre-commit==4.6.2

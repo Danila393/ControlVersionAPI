@@ -1,0 +1,85 @@
+from sqlalchemy import any_, select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
+from src.data.models.webhook_delivery import WebhookDelivery
+from src.data.models.webhook_subscription import WebhookSubscription
+
+
+class WebhookRepository:
+    def __init__(self, session: AsyncSession):
+        self.session = session
+
+    async def create(self, subscription: WebhookSubscription) -> WebhookSubscription:
+        self.session.add(subscription)
+        try:
+            await self.session.flush()
+        except IntegrityError:
+            await self.session.rollback()
+            raise
+        return subscription
+
+    async def list_all(self) -> list[WebhookSubscription]:
+        result = await self.session.execute(select(WebhookSubscription))
+        return list(result.scalars().all())
+
+    async def get_by_id(self, webhook_id: int) -> WebhookSubscription | None:
+        result = await self.session.execute(
+            select(WebhookSubscription).where(WebhookSubscription.id == webhook_id)
+        )
+        return result.scalar_one_or_none()
+
+    async def update(self, subscription: WebhookSubscription) -> WebhookSubscription:
+        try:
+            await self.session.flush()
+        except IntegrityError:
+            await self.session.rollback()
+            raise
+        return subscription
+
+    async def delete(self, subscription: WebhookSubscription) -> None:
+        await self.session.delete(subscription)
+        await self.session.flush()
+
+    async def list_deliveries_by_subscription(
+        self, subscription_id: int
+    ) -> list[WebhookDelivery]:
+        result = await self.session.execute(
+            select(WebhookDelivery).where(
+                WebhookDelivery.subscription_id == subscription_id
+            )
+        )
+        return list(result.scalars().all())
+
+    async def list_active_by_event(self, event_type: str) -> list[WebhookSubscription]:
+        result = await self.session.execute(
+            select(WebhookSubscription).where(
+                WebhookSubscription.is_active == True,
+                event_type == any_(WebhookSubscription.events),
+            )
+        )
+        return list(result.scalars().all())
+
+    async def create_delivery(self, delivery: WebhookDelivery) -> WebhookDelivery:
+        self.session.add(delivery)
+        try:
+            await self.session.flush()
+        except IntegrityError:
+            await self.session.rollback()
+            raise
+        return delivery
+
+    async def get_delivery_by_id(self, delivery_id: int) -> WebhookDelivery | None:
+        result = await self.session.execute(
+            select(WebhookDelivery)
+            .where(WebhookDelivery.id == delivery_id)
+            .options(selectinload(WebhookDelivery.subscription))
+        )
+        return result.scalar_one_or_none()
+
+    async def list_failed_deliveries(self) -> list[WebhookDelivery]:
+        result = await self.session.execute(
+            select(WebhookDelivery).where(WebhookDelivery.status == "failed")
+        )
+        return list(result.scalars().all())
